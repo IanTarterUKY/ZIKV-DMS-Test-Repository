@@ -84,8 +84,7 @@ rule make_summary:
         escape_profiles_ZIKV=nb_markdown('escape_profiles_ZIKV.ipynb'),
         output_pdbs_ZIKV=nb_markdown('output_pdbs_ZIKV.ipynb'),
         mAb_Similarity=nb_markdown('mAb_Similarity.ipynb'),
-        dms-view=nb_markdown('dms-view.ipynb')
-
+        dms_view=nb_markdown('dms-view.ipynb'),
     output:
         summary = os.path.join(config['summary_dir'], 'summary.md')
     run:
