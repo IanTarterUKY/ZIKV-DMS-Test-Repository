@@ -143,7 +143,7 @@ rule make_rulegraph:
     shell:
         "snakemake  --snakefile /scratch/ilta223/Tyler-ZIKV-Escape/Snakefile.txt --forceall --dag | dot -Tsvg > {output}"
 
-rule dms_view
+rule dms_view:
     input:
         config['escape_fracs_ZIKV'],
     output:
@@ -153,7 +153,7 @@ rule dms_view
     shell:
         "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
 
-rule mAb_similarity
+rule mAb_similarity:
     input:
         config['escape_fracs_ZIKV']
     output:
