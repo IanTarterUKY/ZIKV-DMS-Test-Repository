@@ -1,0 +1,16 @@
+# Information about outputting B-factor re-assigned PDBs and dms-view inputs
+#
+# Top-level keys are PDBs
+# Under each PDB key, specify:
+#  pdbfile -> path to file containing PDB
+#  chains -> list of chain(s) to which we map colors, typically RBD chains
+#  conditions -> conditions (antibodies / sera) for which we write this PDB,
+#                set to ALL  for all conditions
+
+
+# 5kVD is ZV-2 bound ZIKV DIII
+5KVD:
+  pdbfile: data/pdbs/5JHM.pdb
+  chains:
+    - A
+  conditions: ALL

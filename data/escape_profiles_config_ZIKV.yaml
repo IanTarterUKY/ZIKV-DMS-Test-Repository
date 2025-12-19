@@ -1,0 +1,463 @@
+# Specify configuration of escape profile and related plots.
+#
+# Each entry should be a key with the name of the plot. It then can
+# have the following nested keys:
+#   conditions -> specify antibodies / sera and names to use when plotting
+#   plot_auto_identified_sites -> provide name of one of the thresholds for
+#                                 identifying sites of strong escape, or false
+#                                 to not plot auto-identified strong sites.
+#   add_sites -> list of any additional sites to plot
+#   exclude_sites -> list of any sites to exclude from plot
+#   site_color_scheme -> site-level color scheme in `site_color_schemes.csv`
+#                        **or** color for all sites
+#   mutation_colors -> dict keyed by mutation (e.g., P484) with value being color
+#   color_by_dms -> make copies of escape profiles colored by DMS bind / expr
+#   make_supp_data -> make supplemental data / dms-view file
+#   single_nt_only -> only include single-nt mutations relative to Genbank file
+#                     specified here in escape profiles.
+#   draw_line_plot -> set to false to not show line plot in escape profile
+#   analyze_natural_mutations -> analyze naturally occuring mutations at sites
+#                                of strong escape.
+#   analyze_natural_mutations_specs -> override defaults in analyzing natural
+#                                      mutations, defaults in `natural_mutations.ipynb`
+#                                      at top of cells making scatter plots.
+#   natural_mutations_mincounts -> plot escape grid for all sites of strong
+#                                  escape with >= this many mutation counts.
+#   escape_profile_ymax -> override default for this parameter specified
+#                          in main `config.yaml`.
+#   shade_sites -> shade the stacks for certain sites. Key by the antibody name
+#                  (using the short names defined as values in `conditions`),
+#                  and then the values are maps of site to the list [color, alpha]
+#   dmslogo_facet_plot_kwargs -> any keyword arguments to dmslogo.facet_plot
+#   dmslogo_draw_logo_kwargs -> any keyword arguments to dmslogo.draw_logo
+#   dmslogo_draw_line_kwargs -> any keyword arguments to dmslogo.draw_line
+
+MAP_paper_antibodies: &MAP_paper_antibodies # name of plot
+  conditions:  # antibodies / sera to show and names to use for them
+    Z2131_1000: Z2131
+    Z6161_1000: Z6161
+    Z6163_1000: Z6163
+    Z3039_1000: Z3039
+    Z2029_1000: Z2029
+    Z2039_1000: Z2039
+    Z2044_1000: Z2044
+    Z2103_1000: Z2103
+    Z3051_1000: Z3051
+    Z2212_1000: Z2212
+    Z2102_1000: Z2102
+    Z2208_1000: Z2208
+    Z3022_1000: Z3022
+    Z6147_1000: Z6147
+    ZV67_1000: ZV67
+  # plot automatically identified sites?
+  plot_auto_identified_sites: default
+  # add these sites if they aren't automatically identified
+  add_sites: []
+  # exclude these sites even if not automatically identified
+  exclude_sites: []
+  # name of site-level color scheme in `site_color_schemes.csv` **or**
+  # color for all sites
+  site_color_scheme: shelly_mabs
+  # do multi-dimensional scaling?
+  mds: true
+  # color points on multi-dimensional scaling by site color scheme?
+  mds_color_by_site: true
+  # make escape profiles colored by DMS bind / expr measurements?
+  color_by_dms: False
+  # make supplemental data files for this antibody set
+  make_supp_data: true
+
+Z2131:
+  conditions:
+    Z2131_1000: Z2131
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+Z6161:
+  conditions:
+    Z6161_1000: Z6161
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+Z6163:
+  conditions:
+    Z6163_1000: Z6163
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z3039:
+  conditions:
+    Z3039_1000: Z3039
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+   
+Z2029:
+  conditions:
+    Z2029_1000: Z2029
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z2039:
+  conditions:
+    Z2039_1000: Z2039
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z2044:
+  conditions:
+    Z2044_1000: Z2044
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z2103:
+  conditions:
+    Z2103_1000: Z2103
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z3051:
+  conditions:
+    Z3051_1000: Z3051 - ZIKV
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+
+Z2212:
+  conditions:
+    Z2212_1000: Z2212
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  mds: False
+  mds_color_by_site: true
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+ZV2:
+  conditions:
+    ZV2_1000: ZV2
+  plot_auto_identified_sites: default
+  add_sites: [299,302,311]
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+ZV16:
+  conditions:
+    ZV16_1000: ZV16
+  plot_auto_identified_sites: default
+  add_sites: [299,300,302,304,305,306,307]
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z2102:
+  conditions:
+    Z2102_1000: Z2102
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z2208:
+  conditions:
+    Z2208_1000: Z2208
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z3022:
+  conditions:
+    Z3022_1000: Z3022
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+Z6147:
+  conditions:
+    Z6147_1000: Z6147
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+
+ZV67:
+  conditions:
+    ZV67_1000: ZV67
+  plot_auto_identified_sites: default
+  add_sites: []
+  exclude_sites: []
+  site_color_scheme: shelly_mabs
+  color_by_dms: False
+  make_supp_data: False
+  dmslogo_facet_plot_kwargs:
+    height_per_ax: 2.0
+  dmslogo_draw_line_kwargs:
+    widthscale: 0.5
+    axisfontscale: 1.5
+  dmslogo_draw_logo_kwargs:
+    widthscale: 0.75
+    axisfontscale: 1.5
+  escape_profile_ymax:
+    quantile: 0.5
+    frac: 0.05
+
+    
+    

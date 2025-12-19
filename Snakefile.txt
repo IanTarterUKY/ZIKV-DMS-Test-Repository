@@ -1,0 +1,313 @@
+"""``snakemake`` file that runs entire analysis."""
+
+# Imports ---------------------------------------------------------------------
+import glob
+import itertools
+import os.path
+import textwrap
+import urllib.request
+
+import Bio.SeqIO
+
+import dms_variants.codonvarianttable
+import dms_variants.illuminabarcodeparser
+
+import pandas as pd
+
+# Configuration  --------------------------------------------------------------
+configfile: 'config.yaml'
+
+# run "quick" rules locally:
+localrules: make_rulegraph,
+            make_summary
+
+# Functions -------------------------------------------------------------------
+def nb_markdown(nb):
+    """Return path to Markdown results of notebook `nb`."""
+    return os.path.join(config['summary_dir'],
+                        os.path.basename(os.path.splitext(nb)[0]) + '.md')
+
+# Global variables extracted from config --------------------------------------
+# Information on samples and barcode runs for Wuhan_Hu_1 ----------------------
+barcode_runs_ZIKV = pd.read_csv(config['barcode_runs_ZIKV'])
+
+# combination of the *library* and *sample* columns should be unique.
+assert len(barcode_runs_ZIKV.groupby(['library', 'sample'])) == len(barcode_runs_ZIKV)
+
+# *sample* should be the hyphen separated concatenation of
+# *experiment*, *antibody*, *concentration*, and *sort_bin*.
+sample_vs_expect_ZIKV = (
+    barcode_runs_ZIKV
+    .query('experiment_type=="ab_selection"')
+    .assign(concentration=lambda x: x['concentration'].astype(int),
+            expect=lambda x: x[['experiment', 'antibody', 'concentration',
+                                'sort_bin']]
+                             .apply(lambda r: '-'.join(r.values.astype(str)),
+                                    axis=1),
+            equal=lambda x: x['sample'] == x['expect'],
+            )
+    )
+assert sample_vs_expect_ZIKV['equal'].all(), sample_vs_expect_ZIKV.query('equal != True')
+
+# barcode runs with R1 files expanded by glob
+barcode_runs_ZIKV_expandR1 = (
+    barcode_runs_ZIKV
+    .assign(R1=lambda x: x['R1'].str.split('; ').map(
+                    lambda y: list(itertools.chain(*map(glob.glob, y)))),
+            n_R1=lambda x: x['R1'].map(len),
+            sample_lib=lambda x: x['sample'] + '_' + x['library'],
+            )
+    )
+
+assert barcode_runs_ZIKV_expandR1['sample_lib'].nunique() == len(barcode_runs_ZIKV_expandR1)
+if any(barcode_runs_ZIKV_expandR1['n_R1'] < 1):
+    raise ValueError(f"no R1 for {barcode_runs_ZIKV_expandR1.query('n_R1 < 1')}")
+    
+
+# Rules -----------------------------------------------------------------------
+
+# this is the target rule (in place of `all`) since it first rule listed
+
+rule make_summary:
+    """Create Markdown summary of analysis."""
+    input:
+        rulegraph=os.path.join(config['summary_dir'], 'rulegraph.svg'),
+        aggregate_variant_counts_ZIKV=nb_markdown('aggregate_variant_counts_ZIKV.ipynb'),
+        variant_counts_ZIKV=config['variant_counts_ZIKV'],
+        counts_to_cells_ratio_ZIKV=nb_markdown('counts_to_cells_ratio_ZIKV.ipynb'),
+        counts_to_cells_csv_ZIKV=config['counts_to_cells_csv_ZIKV'],
+        counts_to_scores_ZIKV=nb_markdown('counts_to_scores_ZIKV.ipynb'),
+        escape_scores_ZIKV=config['escape_scores_ZIKV'],
+        escape_fracs_ZIKV=config['escape_fracs_ZIKV'],
+        call_strong_escape_sites_ZIKV=nb_markdown('call_strong_escape_sites_ZIKV.ipynb'),
+        strong_escape_sites_ZIKV=config['strong_escape_sites_ZIKV'],
+        escape_profiles_ZIKV=nb_markdown('escape_profiles_ZIKV.ipynb'),
+        output_pdbs_ZIKV=nb_markdown('output_pdbs_ZIKV.ipynb'),
+        mAb_Similarity=nb_markdown('mAb_Similarity.ipynb'),
+        dms-view=nb_markdown('dms-view.ipynb')
+
+    output:
+        summary = os.path.join(config['summary_dir'], 'summary.md')
+    run:
+        def path(f):
+            """Get path relative to `summary_dir`."""
+            return os.path.relpath(f, config['summary_dir'])
+        with open(output.summary, 'w') as f:
+            f.write(textwrap.dedent(f"""
+            # Summary
+
+            Analysis run by [Snakefile]({path(workflow.snakefile)})
+            using [this config file]({path(workflow.configfiles[0])}).
+            See the [README in the top directory]({path('README.md')})
+            for details.
+
+            Here is the rule graph of the computational workflow:
+            ![{path(input.rulegraph)}]({path(input.rulegraph)})
+
+            Here is the Markdown output of each notebook in the workflow:
+            
+            1. Get barcode-variant lookup table from previous analysis 
+
+            2. Count variants and then aggregate counts for
+               [ZIKV]({path(input.aggregate_variant_counts_ZIKV)}) 
+               to create variant counts files for [ZIKV]({path(input.variant_counts_ZIKV)}) 
+
+            3. Analyze sequencing counts to cells ratio for [ZIKV]({path(input.counts_to_cells_ratio_ZIKV)})
+               this prints a list of any samples where this ratio too low. Also
+               creates a CSV for [ZIKV]({path(input.counts_to_cells_csv_ZIKV)}) with the
+               sequencing counts, number of sorted cells, and ratios for
+               all samples.
+
+            4. Calculate escape scores from variant counts for [ZIKV]({path(input.counts_to_scores_ZIKV)}) 
+
+            5. Call sites of strong escape for [ZIKV]({path(input.call_strong_escape_sites_ZIKV)}) 
+
+            6. Plot escape profiles for [ZIKV]({path(input.escape_profiles_ZIKV)}) 
+
+            7. Map escape profiles to ``*.pdb`` files using notebooks here for 
+               [ZIKV]({path(input.output_pdbs_ZIKV)}), 
+               
+            8. PCA plot of antbiody escape for [ZIKV]({path(input.mAb_Similarity)})
+            
+            9. Create dms-viewer files for [ZIKV]({path(input.dms-view)})
+
+            """
+            ).strip())
+
+rule make_rulegraph:
+    # error message, but works: https://github.com/sequana/sequana/issues/115
+    input:
+        workflow.snakefile
+    output:
+        os.path.join(config['summary_dir'], 'rulegraph.svg')
+    shell:
+        "snakemake  --snakefile /scratch/ilta223/Tyler-ZIKV-Escape/Snakefile.txt --forceall --dag | dot -Tsvg > {output}"
+
+rule dms_view
+    input:
+        config['escape_fracs_ZIKV'],
+    output:
+        nb_markdown=nb_markdown('dms-view.ipynb')
+    params:
+        nb='dms-view.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+
+rule mAb_similarity
+    input:
+        config['escape_fracs_ZIKV']
+    output:
+        nb_markdown=nb_markdown('mAb_Similarity.ipynb')
+    params:
+        nb='mAb_Similarity.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+
+rule output_pdbs_ZIKV:
+    input:
+        config['escape_fracs_ZIKV'],
+        config['output_pdbs_config'],
+    output:
+        nb_markdown=nb_markdown('output_pdbs_ZIKV.ipynb'),
+        outdir=directory(config['pdb_outputs_dir_ZIKV']),
+    params:
+        nb='output_pdbs_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+                  
+rule escape_profiles_ZIKV:
+    """Make stacked logo plots of antibody escape profiles."""
+    input:
+        escape_fracs=config['escape_fracs_ZIKV'],
+        escape_profiles_config=config['escape_profiles_config_ZIKV'],
+        site_color_schemes=config['site_color_schemes'],
+        wildtype_sequence=config['wildtype_sequence_ZIKV'],
+        #mut_bind_expr=config['mut_bind_expr'],
+        strong_escape_sites=config['strong_escape_sites_ZIKV'],
+    output:
+        nb_markdown=nb_markdown('escape_profiles_ZIKV.ipynb'),
+    params:
+        nb='escape_profiles_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+          
+        
+rule call_strong_escape_sites_ZIKV:
+    """Call sites of strong escape."""
+    input:
+        escape_fracs=config['escape_fracs_ZIKV'],
+    output:
+        nb_markdown=nb_markdown('call_strong_escape_sites_ZIKV.ipynb'),
+        strong_escape_sites=config['strong_escape_sites_ZIKV'],
+    params:
+        nb='call_strong_escape_sites_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"     
+        
+
+rule counts_to_scores_ZIKV:
+    """Analyze variant counts to compute escape scores."""
+    input:
+        config['variant_counts_ZIKV'],
+        config['wildtype_sequence_ZIKV'],
+        # config['mut_bind_expr'],
+        # config['variant_expr'],
+        # config['variant_bind'],
+    output:
+        nb_markdown=nb_markdown('counts_to_scores_ZIKV.ipynb'),
+        escape_scores=config['escape_scores_ZIKV'],
+        escape_fracs=config['escape_fracs_ZIKV'],
+        escape_score_samples=config['escape_score_samples_ZIKV'],
+    params:
+        nb='counts_to_scores_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+                
+rule aggregate_variant_counts_ZIKV:
+    input:
+        counts=expand(os.path.join(config['counts_dir_ZIKV'],
+                                   "{sample_lib}_counts.csv"),
+                      sample_lib=barcode_runs_ZIKV_expandR1['sample_lib']),
+        fates=expand(os.path.join(config['counts_dir_ZIKV'],
+                                  "{sample_lib}_fates.csv"),
+                     sample_lib=barcode_runs_ZIKV_expandR1['sample_lib']),
+        variant_table=config['bc_variant_lookup_ZIKV'],
+        wt_seq=config['wildtype_sequence_ZIKV'],
+        barcode_runs=config['barcode_runs_ZIKV'],
+    output:
+        config['variant_counts_ZIKV'],
+        nb_markdown=nb_markdown('aggregate_variant_counts_ZIKV.ipynb')
+    params:
+        nb='aggregate_variant_counts_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"
+
+
+rule counts_to_cells_ratio_ZIKV:
+    input:
+        config['variant_counts_ZIKV'],
+        config['barcode_runs_ZIKV'],
+        config['wildtype_sequence_ZIKV'],
+    output:
+        nb_markdown=nb_markdown('counts_to_cells_ratio_ZIKV.ipynb'),
+        counts_to_cells_csv_ZIKV=config['counts_to_cells_csv_ZIKV'],
+    params:
+        nb='counts_to_cells_ratio_ZIKV.ipynb'
+    shell:
+        "python scripts/run_nb.py {params.nb} {output.nb_markdown}"     
+        
+          
+        
+rule count_variants_ZIKV:
+    """Count variants for a specific sample."""
+    input:
+        variant_table=config['bc_variant_lookup_ZIKV'],
+        wt_seq=config['wildtype_sequence_ZIKV'],
+        r1s=lambda wildcards: (barcode_runs_ZIKV_expandR1
+                               .set_index('sample_lib')
+                               .at[wildcards.sample_lib, 'R1']
+                               ),
+    output:
+        counts=os.path.join(config['counts_dir_ZIKV'], "{sample_lib}_counts.csv"),
+        fates=os.path.join(config['counts_dir_ZIKV'], "{sample_lib}_fates.csv"),
+    params:
+        sample_lib="{sample_lib}"
+    run:
+        # parse sample and library from `sample_lib` wildcard
+        lib = params.sample_lib.split('_')[-1]
+        sample = params.sample_lib[: -len(lib) - 1]
+        assert sample == (barcode_runs_ZIKV_expandR1
+                          .set_index('sample_lib')
+                          .at[params.sample_lib, 'sample']
+                          )
+        assert lib == (barcode_runs_ZIKV_expandR1
+                       .set_index('sample_lib')
+                       .at[params.sample_lib, 'library']
+                       )
+        # initialize `CodonVariantTable` (used to get valid barcodes)
+        wt_seqrecord = Bio.SeqIO.read(input.wt_seq, 'fasta')
+        geneseq = str(wt_seqrecord.seq)
+        primary_target = wt_seqrecord.name
+        variants=dms_variants.codonvarianttable.CodonVariantTable(
+                    geneseq=geneseq,
+                    barcode_variant_file=input.variant_table,
+                    substitutions_are_codon=True,
+                    substitutions_col='codon_substitutions',
+                    primary_target=primary_target,
+                    allowgaps=True)
+        # initialize `IlluminaBarcodeParser`
+        parser = dms_variants.illuminabarcodeparser.IlluminaBarcodeParser(
+                    valid_barcodes=variants.valid_barcodes(lib),
+                    **config['illumina_barcode_parser_params'])
+        # parse barcodes
+        counts, fates = parser.parse(input.r1s,
+                                     add_cols={'library': lib,
+                                               'sample': sample})
+        # write files
+        counts.to_csv(output.counts, index=False)
+        fates.to_csv(output.fates, index=False)
+
+
+        
+        
+
