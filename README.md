@@ -1,0 +1,1 @@
+To follow this analysis download the conda environment file "Tyler-escape.yml" and create a conda environment from it. You will also need to download the Snakefile.txt, Config.yml, each of the jupyter notebooks, and set up the directories the same way ie data, results, scripts
